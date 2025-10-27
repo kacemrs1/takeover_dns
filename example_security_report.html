@@ -1,0 +1,878 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdomain Takeover Security Report - example.com</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .executive-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .risk-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #20c997;
+        }
+        
+        .vulnerability-card {
+            border-left: 5px solid #dc3545;
+            background-color: #fff5f5;
+        }
+        
+        .suspicious-card {
+            border-left: 5px solid #ffc107;
+            background-color: #fffbf0;
+        }
+        
+        .safe-card {
+            border-left: 5px solid #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .vulnerability-badge {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        
+        .confidence-high { background-color: #dc3545; }
+        .confidence-medium { background-color: #ffc107; }
+        .confidence-low { background-color: #6c757d; }
+        
+        .details-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .collapsible-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: calc(251.2 - (251.2 * 27) / 100);
+            transition: stroke-dashoffset 0.35s;
+            stroke: #20c997;
+        }
+        
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="executive-summary">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="display-4 mb-3">
+                                <i class="fas fa-shield-alt me-3"></i>
+                                Subdomain Security Report
+                            </h1>
+                            <h2 class="h4 mb-2">Target Domain: <span class="text-warning">example.com</span></h2>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar me-2"></i>
+                                Generated on October 26, 2025 at 09:59 PM
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="position-relative d-inline-block">
+                                <svg class="progress-ring" width="120" height="120">
+                                    <circle class="progress-ring-circle" stroke-width="8" fill="transparent" r="40" cx="60" cy="60"/>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <div class="risk-score">27</div>
+                                    <div class="small">LOW</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                        <h3 class="card-title">54</h3>
+                        <p class="card-text text-muted">Total Subdomains</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h3 class="card-title text-danger">14</h3>
+                        <p class="card-text text-muted">Vulnerable</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-eye fa-3x text-warning mb-3"></i>
+                        <h3 class="card-title text-warning">2</h3>
+                        <p class="card-text text-muted">Suspicious</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3 class="card-title text-success">38</h3>
+                        <p class="card-text text-muted">Safe</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vulnerable Subdomains -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card vulnerability-card">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Vulnerable Subdomains (14)
+                        </h4>
+                        <div class="no-print">
+                            <button class="btn btn-light btn-sm" onclick="copySubdomains('vulnerable')">
+                                <i class="fas fa-copy me-1"></i>Copy List
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="vulnerable-subdomains">
+        
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>messages.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    <p class="mb-0 small text-muted">CNAME: msock-lb-1964515255.us-west-1.elb.amazonaws.com.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-0">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-0">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 52.9.82.42, 13.56.225.216</li>
+                                <li>CNAME Records: msock-lb-1964515255.us-west-1.elb.amazonaws.com.</li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>mappingcolor.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-high me-2">
+                            HIGH Confidence
+                        </span>
+                        <span class="badge bg-info me-2">Netlify</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-1">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-1">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 54.176.195.13</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: Netlify
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>cdn-thumbor.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-2">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-2">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 52.222.132.104, 52.222.132.36, 52.222.132.77, 52.222.132.102</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>ad360.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-3">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-3">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 34.202.8.134, 34.198.159.94, 44.196.185.24, 52.205.99.71, 98.87.45.23, 34.206.200.124</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>cdn-inventory.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-high me-2">
+                            HIGH Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-4">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-4">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 18.67.250.63, 18.67.250.76, 18.67.250.31, 18.67.250.57</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>fbmp.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-5">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-5">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 3.228.179.63, 54.85.57.75, 52.206.29.87, 54.82.164.201, 35.174.217.213, 54.152.95.120</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>msock.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-6">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-6">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 54.153.76.111</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>automation.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-7">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-7">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 34.194.236.178, 44.216.84.71</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>craigslist.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-8">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-8">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 98.85.156.187, 98.89.124.125, 18.208.25.164, 3.218.32.237, 35.170.165.120, 13.223.115.67</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>webscraperback.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-9">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-9">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 75.101.131.197, 3.210.126.152</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>cdn-websites.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-high me-2">
+                            HIGH Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 403</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-10">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-10">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 13.224.83.125, 13.224.83.2, 13.224.83.3, 13.224.83.21</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>api-apps.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-medium me-2">
+                            MEDIUM Confidence
+                        </span>
+                        <span class="badge bg-info me-2">AWS S3</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    <p class="mb-0 small text-muted">CNAME: app-manager-back-lb-1656695966.us-east-1.elb.amazonaws.com.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-11">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-11">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 3.216.8.72, 34.227.213.156, 100.26.94.196, 54.225.206.191, 3.211.234.165, 54.162.101.196</li>
+                                <li>CNAME Records: app-manager-back-lb-1656695966.us-east-1.elb.amazonaws.com.</li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: AWS S3
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>chat.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-high me-2">
+                            HIGH Confidence
+                        </span>
+                        <span class="badge bg-info me-2">Netlify</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-12">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-12">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 100.28.46.71, 52.2.237.147, 34.233.19.87, 44.213.146.209, 35.171.226.54, 67.202.29.181</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: Netlify
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3 p-3 border rounded">
+                <div class="col-md-8">
+                    <h5 class="subdomain-name text-danger mb-2">
+                        <i class="fas fa-globe me-2"></i>bdc.example.com
+                    </h5>
+                    <div class="mb-2">
+                        <span class="badge vulnerability-badge confidence-high me-2">
+                            HIGH Confidence
+                        </span>
+                        <span class="badge bg-info me-2">Netlify</span>
+                        <span class="badge bg-secondary">Status: 404</span>
+                    </div>
+                    
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="collapse" data-bs-target="#vuln-details-13">
+                        <i class="fas fa-info-circle me-1"></i>Details
+                    </button>
+                </div>
+                <div class="col-12">
+                    <div class="collapse mt-3" id="vuln-details-13">
+                        <div class="bg-light p-3 rounded">
+                            <h6>DNS Information:</h6>
+                            <ul class="small mb-2">
+                                <li>A Records: 54.87.191.225, 18.234.16.34</li>
+                                <li>CNAME Records: </li>
+                            </ul>
+                            <h6>HTTP Response:</h6>
+                            <p class="small mb-0">
+                                Response indicates: Netlify
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Suspicious Subdomains -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card suspicious-card">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            Suspicious Subdomains (2)
+                        </h4>
+                        <div class="no-print">
+                            <button class="btn btn-dark btn-sm" onclick="copySubdomains('suspicious')">
+                                <i class="fas fa-copy me-1"></i>Copy List
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body collapsible-content" id="suspicious-subdomains">
+        
+            <div class="row mb-2 p-2 border-bottom">
+                <div class="col-md-6">
+                    <span class="subdomain-name fw-bold">api-apps-v2.example.com</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="badge bg-warning text-dark me-2">AWS ELB</span>
+                    <small class="text-muted">apps-manager-front-alb-324712945.us-east-1.elb.amazonaws.com.</small>
+                </div>
+            </div>
+            
+            <div class="row mb-2 p-2 border-bottom">
+                <div class="col-md-6">
+                    <span class="subdomain-name fw-bold">appsmanager.example.com</span>
+                </div>
+                <div class="col-md-6">
+                    <span class="badge bg-warning text-dark me-2">AWS ELB</span>
+                    <small class="text-muted">apps-manager-front-alb-324712945.us-east-1.elb.amazonaws.com.</small>
+                </div>
+            </div>
+            
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Safe Subdomains -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card safe-card">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Safe Subdomains (38)
+                        </h4>
+                        <div class="no-print">
+                            <button class="btn btn-light btn-sm" data-bs-toggle="collapse" data-bs-target="#safe-list">
+                                <i class="fas fa-list me-1"></i>Show/Hide List
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collapse card-body collapsible-content" id="safe-list">
+                        <div class="row">
+                            
+        <div class="col-md-4"><div class="mb-1 small">• internal.support.example.com</div><div class="mb-1 small">• salesdocs.example.com</div><div class="mb-1 small">• cp09.example.com</div><div class="mb-1 small">• im360.px1.example.com</div><div class="mb-1 small">• webscraper.example.com</div><div class="mb-1 small">• nagios.example.com</div><div class="mb-1 small">• r1soft.sbm.example.com</div><div class="mb-1 small">• im360.px2.example.com</div><div class="mb-1 small">• n8n.example.com</div><div class="mb-1 small">• account.example.com</div><div class="mb-1 small">• help.example.com</div><div class="mb-1 small">• rdpmanager.example.com</div><div class="mb-1 small">• pma.example.com</div></div>
+        <div class="col-md-4"><div class="mb-1 small">• internal.help.example.com</div><div class="mb-1 small">• pma.websites.example.com</div><div class="mb-1 small">• support.example.com</div><div class="mb-1 small">• cp04.example.com</div><div class="mb-1 small">• bot.example.com</div><div class="mb-1 small">• export.example.com</div><div class="mb-1 small">• reseller.example.com</div><div class="mb-1 small">• crm.example.com</div><div class="mb-1 small">• view360.example.com</div><div class="mb-1 small">• tickets.example.com</div><div class="mb-1 small">• inventory.example.com</div><div class="mb-1 small">• kibana.example.com</div><div class="mb-1 small">• ci.example.com</div></div>
+        <div class="col-md-4"><div class="mb-1 small">• cp02.example.com</div><div class="mb-1 small">• cpx1.example.com</div><div class="mb-1 small">• cdn-pwa.example.com</div><div class="mb-1 small">• laravel.v2.example.com</div><div class="mb-1 small">• social.example.com</div><div class="mb-1 small">• my.example.com</div><div class="mb-1 small">• cancellation.example.com</div><div class="mb-1 small">• websites.example.com</div><div class="mb-1 small">• cp06.example.com</div><div class="mb-1 small">• www.example.com</div><div class="mb-1 small">• exportv2.example.com</div><div class="mb-1 small">• fbmp-api.example.com</div></div>
+        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Recommendations -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Security Recommendations
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Priority Actions:</h5>
+                                <ul class="list-unstyled">
+                                    <li class='mb-2'>🚨 <strong>IMMEDIATE ACTION:</strong> Investigate and fix all vulnerable subdomains immediately</li><li class='mb-2'>🔒 Remove DNS records for unused subdomains or point them to controlled resources</li><li class='mb-2'>📧 Set up monitoring alerts for new subdomain creation</li><li class='mb-2'>⚠️ Review all suspicious subdomains pointing to cloud services</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Long-term Improvements:</h5>
+                                <ul class="list-unstyled">
+                                    <li class='mb-2'>🔍 Verify that all cloud resources are still under your control</li><li class='mb-2'>📅 Schedule regular subdomain takeover scans (monthly recommended)</li><li class='mb-2'>🛡️ Implement CAA records to prevent unauthorized certificate issuance</li><li class='mb-2'>📚 Train your team on subdomain security best practices</li><li class='mb-2'>🔄 Create a process for proper DNS cleanup when decommissioning services</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Technical Details -->
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Technical Details
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Scan Parameters:</h5>
+                                <ul class="small">
+                                    <li>Target Domain: example.com</li>
+                                    <li>Scan Date: 2025-10-26 21:59:08</li>
+                                    <li>Total Subdomains Analyzed: 54</li>
+                                    <li>Tools Used: Subfinder, Amass, Subjack, Custom Analysis</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Detection Methods:</h5>
+                                <ul class="small">
+                                    <li>DNS Resolution Analysis</li>
+                                    <li>HTTP Response Pattern Matching</li>
+                                    <li>Cloud Service Identification</li>
+                                    <li>Certificate Validation</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-info small mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    This report was generated using automated tools. Manual verification of findings is recommended for critical subdomains.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12 text-center no-print">
+                <button class="btn btn-primary btn-lg" onclick="exportReport()">
+                    <i class="fas fa-download me-2"></i>Export Report (PDF)
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+        
+        // Export functionality
+        function exportReport() {
+            window.print();
+        }
+        
+        // Copy subdomain list
+        function copySubdomains(type) {
+            const subdomains = document.querySelectorAll(`#${type}-subdomains .subdomain-name`);
+            const list = Array.from(subdomains).map(el => el.textContent).join('\n');
+            navigator.clipboard.writeText(list).then(() => {
+                alert(`${type} subdomains copied to clipboard!`);
+            });
+        }
+    </script>
+</body>
+</html>
+        
